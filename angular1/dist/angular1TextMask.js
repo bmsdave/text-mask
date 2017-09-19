@@ -80,13 +80,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function removeExcessNumbers(decimal, limit) {
-	  return typeof decimal === 'string' ? decimal.slice(0, limit) : "";
+	  return typeof decimal === 'string' ? decimal.slice(0, limit) : '';
 	}
 
 	function prepareForMask(value, conf) {
-	  var result = "";
+	  var result = '';
 	  if (value || value === 0) {
-	    var separatedValue = value.toString().split(".");
+	    var separatedValue = value.toString().split('.');
 	    if (conf.allowDecimal && separatedValue[1]) {
 	      result = separatedValue[0] + conf.decimalSymbol + removeExcessNumbers(separatedValue[1], conf.decimalLimit);
 	    } else {
@@ -884,10 +884,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        placeholder: placeholder,
 	        currentCaretPosition: currentCaretPosition,
 	        keepCharPositions: keepCharPositions
-
-	        // `conformToMask` returns `conformedValue` as part of an object for future API flexibility
 	      };
-	      var _conformToMask = (0, _conformToMask3.default)(safeRawValue, mask, conformToMaskConfig),
+	      var uniqueSymbols = mask.filter(function (value, index, self) {
+	        return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) !== 'object' && self.indexOf(value) === index;
+	      });
+	      var uniqueSymbolsString = uniqueSymbols.length > 0 ? '\\' + uniqueSymbols.join('\\') : '';
+	      var reg = new RegExp('[^0-9' + uniqueSymbolsString + ']', 'g');
+	      var safeRawValueWithoutSyblols = safeRawValue.replace(reg, '');
+
+	      // `conformToMask` returns `conformedValue` as part of an object for future API flexibility
+
+	      var _conformToMask = (0, _conformToMask3.default)(safeRawValueWithoutSyblols, mask, conformToMaskConfig),
 	          conformedValue = _conformToMask.conformedValue;
 
 	      // The following few lines are to support the `pipe` feature.
@@ -900,7 +907,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // If `pipe` is a function, we call it.
 	      if (piped) {
 	        // `pipe` receives the `conformedValue` and the configurations with which `conformToMask` was called.
-	        pipeResults = pipe(conformedValue, _extends({ rawValue: safeRawValue }, conformToMaskConfig));
+	        pipeResults = pipe(conformedValue, _extends({ rawValue: safeRawValueWithoutSyblols }, conformToMaskConfig));
 
 	        // `pipeResults` should be an object. But as a convenience, we allow the pipe author to just return `false` to
 	        // indicate rejection. Or return just a string when there are no piped characters.
@@ -925,7 +932,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        previousPlaceholder: previousPlaceholder,
 	        conformedValue: finalConformedValue,
 	        placeholder: placeholder,
-	        rawValue: safeRawValue,
+	        rawValue: safeRawValueWithoutSyblols,
 	        currentCaretPosition: currentCaretPosition,
 	        placeholderChar: placeholderChar,
 	        indexesOfPipedChars: pipeResults.indexesOfPipedChars,

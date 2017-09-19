@@ -36,7 +36,9 @@ export default function createTextMaskInputElement(config) {
 
       // If `rawValue` equals `state.previousConformedValue`, we don't need to change anything. So, we return.
       // This check is here to handle controlled framework components that repeat the `update` call on every render.
-      if (rawValue === state.previousConformedValue) { return }
+      if (rawValue === state.previousConformedValue) {
+        return
+      }
 
       // Text Mask accepts masks that are a combination of a `mask` and a `pipe` that work together. If such a `mask` is
       // passed, we destructure it below, so the rest of the code can work normally as if a separate `mask` and a `pipe`
@@ -62,7 +64,9 @@ export default function createTextMaskInputElement(config) {
 
       // In framework components that support reactivity, it's possible to turn off masking by passing
       // `false` for `mask` after initialization. See https://github.com/text-mask/text-mask/pull/359
-      if (providedMask === false) { return }
+      if (providedMask === false) {
+        return
+      }
 
       // We check the provided `rawValue` before moving further.
       // If it's something we can't work with `getSafeRawValue` will throw.
@@ -82,7 +86,9 @@ export default function createTextMaskInputElement(config) {
         mask = providedMask(safeRawValue, {currentCaretPosition, previousConformedValue, placeholderChar})
 
         // disable masking if `mask` is `false`
-        if (mask === false) { return }
+        if (mask === false) {
+          return
+        }
 
         // mask functions can setup caret traps to have some control over how the caret moves. We need to process
         // the mask for any caret traps. `processCaretTraps` will remove the caret traps from the mask and return
@@ -94,7 +100,7 @@ export default function createTextMaskInputElement(config) {
 
         placeholder = convertMaskToPlaceholder(mask, placeholderChar)
 
-      // If the `providedMask` is not a function, we just use it as-is.
+        // If the `providedMask` is not a function, we just use it as-is.
       } else {
         mask = providedMask
       }
@@ -109,9 +115,18 @@ export default function createTextMaskInputElement(config) {
         currentCaretPosition,
         keepCharPositions
       }
+      const uniqueSymbols = mask.filter(
+        (value, index, self) => {
+          return (typeof value !== 'object') && (self.indexOf(value) === index
+          )
+        }
+      )
+      const uniqueSymbolsString = uniqueSymbols.length > 0 ? '\\' + uniqueSymbols.join('\\') : ''
+      const reg = new RegExp(`[^0-9${uniqueSymbolsString}]`, 'g')
+      const safeRawValueWithoutSyblols = safeRawValue.replace(reg, '')
 
       // `conformToMask` returns `conformedValue` as part of an object for future API flexibility
-      const {conformedValue} = conformToMask(safeRawValue, mask, conformToMaskConfig)
+      const {conformedValue} = conformToMask(safeRawValueWithoutSyblols, mask, conformToMaskConfig)
 
       // The following few lines are to support the `pipe` feature.
       const piped = typeof pipe === strFunction
@@ -121,7 +136,7 @@ export default function createTextMaskInputElement(config) {
       // If `pipe` is a function, we call it.
       if (piped) {
         // `pipe` receives the `conformedValue` and the configurations with which `conformToMask` was called.
-        pipeResults = pipe(conformedValue, {rawValue: safeRawValue, ...conformToMaskConfig})
+        pipeResults = pipe(conformedValue, {rawValue: safeRawValueWithoutSyblols, ...conformToMaskConfig})
 
         // `pipeResults` should be an object. But as a convenience, we allow the pipe author to just return `false` to
         // indicate rejection. Or return just a string when there are no piped characters.
@@ -146,7 +161,7 @@ export default function createTextMaskInputElement(config) {
         previousPlaceholder,
         conformedValue: finalConformedValue,
         placeholder,
-        rawValue: safeRawValue,
+        rawValue: safeRawValueWithoutSyblols,
         currentCaretPosition,
         placeholderChar,
         indexesOfPipedChars: pipeResults.indexesOfPipedChars,
