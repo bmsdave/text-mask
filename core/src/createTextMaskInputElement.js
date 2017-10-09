@@ -122,11 +122,9 @@ export default function createTextMaskInputElement(config) {
         }
       )
       const uniqueSymbolsString = uniqueSymbols.length > 0 ? '\\' + uniqueSymbols.join('\\') : ''
-      const reg = new RegExp(`[^0-9${uniqueSymbolsString}]`, 'g')
-      const safeRawValueWithoutSyblols = safeRawValue.replace(reg, '')
 
       // `conformToMask` returns `conformedValue` as part of an object for future API flexibility
-      const {conformedValue} = conformToMask(safeRawValueWithoutSyblols, mask, conformToMaskConfig)
+      const {conformedValue} = conformToMask(safeRawValue, mask, conformToMaskConfig)
 
       // The following few lines are to support the `pipe` feature.
       const piped = typeof pipe === strFunction
@@ -136,7 +134,7 @@ export default function createTextMaskInputElement(config) {
       // If `pipe` is a function, we call it.
       if (piped) {
         // `pipe` receives the `conformedValue` and the configurations with which `conformToMask` was called.
-        pipeResults = pipe(conformedValue, {rawValue: safeRawValueWithoutSyblols, ...conformToMaskConfig})
+        pipeResults = pipe(conformedValue, {rawValue: safeRawValue, ...conformToMaskConfig})
 
         // `pipeResults` should be an object. But as a convenience, we allow the pipe author to just return `false` to
         // indicate rejection. Or return just a string when there are no piped characters.
@@ -161,7 +159,7 @@ export default function createTextMaskInputElement(config) {
         previousPlaceholder,
         conformedValue: finalConformedValue,
         placeholder,
-        rawValue: safeRawValueWithoutSyblols,
+        rawValue: safeRawValue,
         currentCaretPosition,
         placeholderChar,
         indexesOfPipedChars: pipeResults.indexesOfPipedChars,

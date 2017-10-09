@@ -281,6 +281,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 
 	      mask = [minusRegExp].concat(mask);
+	      integer = '-' + integer
+
 	    }
 
 	    if (suffix.length > 0) {
