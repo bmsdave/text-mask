@@ -850,8 +850,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // If the `providedMask` is a function. We need to call it at every `update` to get the `mask` array.
 	      // Then we also need to get the `placeholder`
 	      if ((typeof providedMask === 'undefined' ? 'undefined' : _typeof(providedMask)) === strFunction) {
-	        mask = providedMask(safeRawValue, { currentCaretPosition: currentCaretPosition, previousConformedValue: previousConformedValue, placeholderChar: placeholderChar });
-
+	        var maskWithValue = providedMask(safeRawValue, {
+	          currentCaretPosition: currentCaretPosition,
+	          previousConformedValue: previousConformedValue,
+	          placeholderChar: placeholderChar
+	        });
+	        if (maskWithValue instanceof Array) {
+	          mask = maskWithValue;
+	        } else {
+	          mask = maskWithValue.mask;
+	          safeRawValue = maskWithValue.rawValue;
+	        }
 	        // disable masking if `mask` is `false`
 	        if (mask === false) {
 	          return;
@@ -889,12 +898,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) !== 'object' && self.indexOf(value) === index;
 	      });
 	      var uniqueSymbolsString = uniqueSymbols.length > 0 ? '\\' + uniqueSymbols.join('\\') : '';
-	      var reg = new RegExp('[^0-9' + uniqueSymbolsString + ']', 'g');
-	      var safeRawValueWithoutSyblols = safeRawValue.replace(reg, '');
 
 	      // `conformToMask` returns `conformedValue` as part of an object for future API flexibility
 
-	      var _conformToMask = (0, _conformToMask3.default)(safeRawValueWithoutSyblols, mask, conformToMaskConfig),
+	      var _conformToMask = (0, _conformToMask3.default)(safeRawValue, mask, conformToMaskConfig),
 	          conformedValue = _conformToMask.conformedValue;
 
 	      // The following few lines are to support the `pipe` feature.
@@ -907,7 +914,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // If `pipe` is a function, we call it.
 	      if (piped) {
 	        // `pipe` receives the `conformedValue` and the configurations with which `conformToMask` was called.
-	        pipeResults = pipe(conformedValue, _extends({ rawValue: safeRawValueWithoutSyblols }, conformToMaskConfig));
+	        pipeResults = pipe(conformedValue, _extends({ rawValue: safeRawValue }, conformToMaskConfig));
 
 	        // `pipeResults` should be an object. But as a convenience, we allow the pipe author to just return `false` to
 	        // indicate rejection. Or return just a string when there are no piped characters.
@@ -932,7 +939,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        previousPlaceholder: previousPlaceholder,
 	        conformedValue: finalConformedValue,
 	        placeholder: placeholder,
-	        rawValue: safeRawValueWithoutSyblols,
+	        rawValue: safeRawValue,
 	        currentCaretPosition: currentCaretPosition,
 	        placeholderChar: placeholderChar,
 	        indexesOfPipedChars: pipeResults.indexesOfPipedChars,

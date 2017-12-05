@@ -201,7 +201,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var rawValueLength = rawValue.length;
 
 	    if (rawValue === emptyString || rawValue[0] === prefix[0] && rawValueLength === 1) {
-	      return prefix.split(emptyString).concat([digitRegExp]).concat(suffix.split(emptyString));
+	      return {
+	        mask: prefix.split(emptyString).concat([digitRegExp]).concat(suffix.split(emptyString)),
+	        rawValue: rawValue
+	      };
+	    }
+
+	    if (thousandsSeparatorSymbol === ' ' && ['.', ','].indexOf(decimalSymbol) !== -1) {
+	      rawValue = rawValue.replace(/[,.]/g, decimalSymbol);
 	    }
 
 	    var indexOfLastDecimal = rawValue.lastIndexOf(decimalSymbol);
@@ -234,6 +241,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var thousandsSeparatorRegex = thousandsSeparatorSymbol === '.' ? '[.]' : '' + thousandsSeparatorSymbol;
 	      var reg = new RegExp('[^0-9' + thousandsSeparatorSymbol + ']', 'g');
 	      integer = integer.replace(reg, '');
+	      integer = isNegative ? '-' + integer : integer;
 	      var numberOfThousandSeparators = (integer.match(new RegExp(thousandsSeparatorRegex, 'g')) || []).length;
 
 	      integer = integer.slice(0, integerLimit + numberOfThousandSeparators * thousandsSeparatorSymbolLength);
@@ -286,7 +294,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      mask = mask.concat(suffix.split(emptyString));
 	    }
 
-	    return mask;
+	    return {
+	      mask: mask,
+	      rawValue: rawValue
+	    };
 	  }
 
 	  numberMask.instanceOf = 'createNumberMask';
