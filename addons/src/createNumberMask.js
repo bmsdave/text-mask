@@ -10,18 +10,18 @@ const digitRegExp = /\d/
 const caretTrap = '[]'
 
 export default function createNumberMask({
-  prefix = dollarSign,
-  suffix = emptyString,
-  includeThousandsSeparator = true,
-  thousandsSeparatorSymbol = comma,
-  allowDecimal = false,
-  decimalSymbol = period,
-  decimalLimit = 2,
-  requireDecimal = false,
-  allowNegative = false,
-  allowLeadingZeroes = false,
-  integerLimit = null
-} = {}) {
+                                           prefix = dollarSign,
+                                           suffix = emptyString,
+                                           includeThousandsSeparator = true,
+                                           thousandsSeparatorSymbol = comma,
+                                           allowDecimal = false,
+                                           decimalSymbol = period,
+                                           decimalLimit = 2,
+                                           requireDecimal = false,
+                                           allowNegative = false,
+                                           allowLeadingZeroes = false,
+                                           integerLimit = null
+                                         } = {}) {
   const prefixLength = prefix && prefix.length || 0
   const suffixLength = suffix && suffix.length || 0
   const thousandsSeparatorSymbolLength = thousandsSeparatorSymbol && thousandsSeparatorSymbol.length || 0
@@ -33,7 +33,14 @@ export default function createNumberMask({
       rawValue === emptyString ||
       (rawValue[0] === prefix[0] && rawValueLength === 1)
     ) {
-      return prefix.split(emptyString).concat([digitRegExp]).concat(suffix.split(emptyString))
+      return {
+        mask: prefix.split(emptyString).concat([digitRegExp]).concat(suffix.split(emptyString)),
+        rawValue: rawValue
+      }
+    }
+
+    if (thousandsSeparatorSymbol === ' ' && ['.', ','].indexOf(decimalSymbol) !== -1) {
+      rawValue = rawValue.replace(/[,.]/g, decimalSymbol)
     }
 
     const indexOfLastDecimal = rawValue.lastIndexOf(decimalSymbol)
@@ -64,6 +71,9 @@ export default function createNumberMask({
 
     if (integerLimit && typeof integerLimit === number) {
       const thousandsSeparatorRegex = thousandsSeparatorSymbol === '.' ? '[.]' : `${thousandsSeparatorSymbol}`
+      const reg = new RegExp(`[^0-9${thousandsSeparatorSymbol}]`, 'g')
+      integer = integer.replace(reg, '')
+      integer = isNegative ? '-' + integer : integer;
       const numberOfThousandSeparators = (integer.match(new RegExp(thousandsSeparatorRegex, 'g')) || []).length
 
       integer = integer.slice(0, integerLimit + (numberOfThousandSeparators * thousandsSeparatorSymbolLength))
@@ -116,7 +126,10 @@ export default function createNumberMask({
       mask = mask.concat(suffix.split(emptyString))
     }
 
-    return mask
+    return {
+      mask,
+      rawValue
+    }
   }
 
   numberMask.instanceOf = 'createNumberMask'

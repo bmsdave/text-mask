@@ -36,7 +36,9 @@ export default function createTextMaskInputElement(config) {
 
       // If `rawValue` equals `state.previousConformedValue`, we don't need to change anything. So, we return.
       // This check is here to handle controlled framework components that repeat the `update` call on every render.
-      if (rawValue === state.previousConformedValue) { return }
+      if (rawValue === state.previousConformedValue) {
+        return
+      }
 
       // Text Mask accepts masks that are a combination of a `mask` and a `pipe` that work together. If such a `mask` is
       // passed, we destructure it below, so the rest of the code can work normally as if a separate `mask` and a `pipe`
@@ -62,11 +64,13 @@ export default function createTextMaskInputElement(config) {
 
       // In framework components that support reactivity, it's possible to turn off masking by passing
       // `false` for `mask` after initialization. See https://github.com/text-mask/text-mask/pull/359
-      if (providedMask === false) { return }
+      if (providedMask === false) {
+        return
+      }
 
       // We check the provided `rawValue` before moving further.
       // If it's something we can't work with `getSafeRawValue` will throw.
-      const safeRawValue = getSafeRawValue(rawValue)
+      let safeRawValue = getSafeRawValue(rawValue)
 
       // `selectionStart` indicates to us where the caret position is after the user has typed into the input
       const {selectionStart: currentCaretPosition} = inputElement
@@ -79,10 +83,21 @@ export default function createTextMaskInputElement(config) {
       // If the `providedMask` is a function. We need to call it at every `update` to get the `mask` array.
       // Then we also need to get the `placeholder`
       if (typeof providedMask === strFunction) {
-        mask = providedMask(safeRawValue, {currentCaretPosition, previousConformedValue, placeholderChar})
-
+        let maskWithValue = providedMask(safeRawValue, {
+          currentCaretPosition: currentCaretPosition,
+          previousConformedValue: previousConformedValue,
+          placeholderChar: placeholderChar
+        })
+        if (maskWithValue instanceof Array) {
+          mask = maskWithValue
+        } else {
+          mask = maskWithValue.mask
+          safeRawValue = maskWithValue.rawValue
+        }
         // disable masking if `mask` is `false`
-        if (mask === false) { return }
+        if (mask === false) {
+          return
+        }
 
         // mask functions can setup caret traps to have some control over how the caret moves. We need to process
         // the mask for any caret traps. `processCaretTraps` will remove the caret traps from the mask and return
@@ -94,7 +109,7 @@ export default function createTextMaskInputElement(config) {
 
         placeholder = convertMaskToPlaceholder(mask, placeholderChar)
 
-      // If the `providedMask` is not a function, we just use it as-is.
+        // If the `providedMask` is not a function, we just use it as-is.
       } else {
         mask = providedMask
       }
@@ -109,6 +124,13 @@ export default function createTextMaskInputElement(config) {
         currentCaretPosition,
         keepCharPositions
       }
+      const uniqueSymbols = mask.filter(
+        (value, index, self) => {
+          return (typeof value !== 'object') && (self.indexOf(value) === index
+          )
+        }
+      )
+      const uniqueSymbolsString = uniqueSymbols.length > 0 ? '\\' + uniqueSymbols.join('\\') : ''
 
       // `conformToMask` returns `conformedValue` as part of an object for future API flexibility
       const {conformedValue} = conformToMask(safeRawValue, mask, conformToMaskConfig)
