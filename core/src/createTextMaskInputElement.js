@@ -70,7 +70,7 @@ export default function createTextMaskInputElement(config) {
 
       // We check the provided `rawValue` before moving further.
       // If it's something we can't work with `getSafeRawValue` will throw.
-      const safeRawValue = getSafeRawValue(rawValue)
+      let safeRawValue = getSafeRawValue(rawValue)
 
       // `selectionStart` indicates to us where the caret position is after the user has typed into the input
       const {selectionStart: currentCaretPosition} = inputElement
@@ -83,8 +83,17 @@ export default function createTextMaskInputElement(config) {
       // If the `providedMask` is a function. We need to call it at every `update` to get the `mask` array.
       // Then we also need to get the `placeholder`
       if (typeof providedMask === strFunction) {
-        mask = providedMask(safeRawValue, {currentCaretPosition, previousConformedValue, placeholderChar})
-
+        let maskWithValue = providedMask(safeRawValue, {
+          currentCaretPosition: currentCaretPosition,
+          previousConformedValue: previousConformedValue,
+          placeholderChar: placeholderChar
+        })
+        if (maskWithValue instanceof Array) {
+          mask = maskWithValue
+        } else {
+          mask = maskWithValue.mask
+          safeRawValue = maskWithValue.rawValue
+        }
         // disable masking if `mask` is `false`
         if (mask === false) {
           return
