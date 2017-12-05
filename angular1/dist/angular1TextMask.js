@@ -850,8 +850,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // If the `providedMask` is a function. We need to call it at every `update` to get the `mask` array.
 	      // Then we also need to get the `placeholder`
 	      if ((typeof providedMask === 'undefined' ? 'undefined' : _typeof(providedMask)) === strFunction) {
-	        mask = providedMask(safeRawValue, { currentCaretPosition: currentCaretPosition, previousConformedValue: previousConformedValue, placeholderChar: placeholderChar });
-
+	        var maskWithValue = providedMask(safeRawValue, {
+	          currentCaretPosition: currentCaretPosition,
+	          previousConformedValue: previousConformedValue,
+	          placeholderChar: placeholderChar
+	        });
+	        if (maskWithValue instanceof Array) {
+	          mask = maskWithValue;
+	        } else {
+	          mask = maskWithValue.mask;
+	          safeRawValue = maskWithValue.rawValue;
+	        }
 	        // disable masking if `mask` is `false`
 	        if (mask === false) {
 	          return;

@@ -117,7 +117,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var rawValueLength = rawValue.length;
 
 	    if (rawValue === emptyString || rawValue[0] === prefix[0] && rawValueLength === 1) {
-	      return prefix.split(emptyString).concat([digitRegExp]).concat(suffix.split(emptyString));
+	      return {
+	        mask: prefix.split(emptyString).concat([digitRegExp]).concat(suffix.split(emptyString)),
+	        rawValue: rawValue
+	      };
+	    }
+
+	    if (thousandsSeparatorSymbol === ' ' && ['.', ','].indexOf(decimalSymbol) !== -1) {
+	      rawValue = rawValue.replace(/[,.]/g, decimalSymbol);
 	    }
 
 	    var indexOfLastDecimal = rawValue.lastIndexOf(decimalSymbol);
@@ -203,7 +210,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      mask = mask.concat(suffix.split(emptyString));
 	    }
 
-	    return mask;
+	    return {
+	      mask: mask,
+	      rawValue: rawValue
+	    };
 	  }
 
 	  numberMask.instanceOf = 'createNumberMask';
